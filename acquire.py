@@ -8,6 +8,26 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+sql_query ='''
+SELECT prop.parcelid,  prop.basementsqft, bathroomcnt, bedroomcnt, decktypeid, calculatedfinishedsquarefeet,
+fips, fireplacecnt, garagecarcnt, hashottuborspa, latitude, longitude, lotsizesquarefeet, poolcnt,
+yearbuilt, numberofstories, prop.airconditioningtypeid, airconditioningdesc, prop.architecturalstyletypeid,
+architecturalstyledesc, prop.buildingclasstypeid, buildingclassdesc, prop.heatingorsystemtypeid,
+heatingorsystemdesc, prop.storytypeid, storydesc, prop.propertylandusetypeid, propertylandusedesc, 
+prop.typeconstructiontypeid, typeconstructiondesc, unitcnt, taxvaluedollarcnt, taxamount, logerror, transactiondate 
+from properties_2017 as prop
+right join predictions_2017 as pred USING (parcelid)
+LEFT JOIN airconditioningtype USING (airconditioningtypeid)
+LEFT JOIN architecturalstyletype USING (architecturalstyletypeid)
+LEFT JOIN buildingclasstype USING (buildingclasstypeid)
+LEFT JOIN heatingorsystemtype USING (heatingorsystemtypeid)
+LEFT JOIN propertylandusetype USING (propertylandusetypeid)
+LEFT JOIN storytype USING(storytypeid)
+LEFT JOIN typeconstructiontype USING (typeconstructiontypeid)
+WHERE transactiondate like '2017%'  
+AND latitude != 'NULL' AND longitude != 'NULL';
+'''
+
 # *************************************  connection url **********************************************
 
 # Create helper function to get the necessary connection url.
@@ -38,6 +58,11 @@ def get_data_from_sql(db_name, query):
     df = pd.read_sql(query, get_connection(db_name))
     return df
 
+
+
+
+
+
 # ************************************ unique values ***************************************************************
 
 def report_unique_val (df):
@@ -63,6 +88,8 @@ def report_unique_val (df):
 
             print('=====================================================')
 
+
+# ************************************ sumarize ***************************************************************
 def summarize(df):
     '''
     summarize will take in a single argument (a pandas dataframe) 
@@ -147,9 +174,5 @@ def handle_missing_values(df, prop_required_columns=0.5, prop_required_row=0.75)
     threshold = int(round(prop_required_row * len(df.columns),0))
     df = df.dropna(axis=0, thresh=threshold)
     
-    #drop rows with null values < 1
-    lis =((100 * df.isnull().sum() / len(df))> 0) &  ((100 * df.isnull().sum() / len(df))< 1)
-    col_drop = list(lis[lis == True].index)
-    df = df.dropna(axis=0, subset = col_drop)
      
     return df
