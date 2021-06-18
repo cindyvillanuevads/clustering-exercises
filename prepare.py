@@ -10,29 +10,6 @@ from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 
 
-def clean_zillow (df):
-    '''
-    Takes in a df and drops duplicates,  nulls,rename columns, parcelid is changed to string.
-    Return a clean df
-    '''
-    
-    # drop duplicates
-    df = df.drop_duplicates()
-    #drop nulls
-    df = df.dropna(how='any',axis=0)
-
-    #  change parcelid to string, it is a uniqure identifier for parcels lots
-    df['parcelid'] = df['parcelid'].astype('str')
-    df['fips'] = df['fips'].astype('int')
-    # rename columns
-    df.rename(columns={'bedroomcnt': 'n_bedrooms', 
-                        'bathroomcnt': 'n_bathrooms',
-                        'calculatedfinishedsquarefeet':'sq_ft',
-                        'fips': 'county',
-                        'taxvaluedollarcnt': 'assessed_value_usd'}, inplace=True)
-
-
-    return df
 
 
 def unique_cntvalues (df, max_unique):
@@ -149,6 +126,7 @@ def scaled_df ( train_df , validate_df, test_df, scaler):
     scaled_df( X_train , X_validate , X_test, RobustScaler())
     
     '''
+    
     #get all columns except object type
     columns = train_df.select_dtypes(exclude='object').columns.tolist()
     
