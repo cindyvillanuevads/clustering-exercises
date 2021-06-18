@@ -115,6 +115,18 @@ def split_Xy (train, validate, test, target):
 
 
 
+def encoding(df, cols, drop_first=True):
+    '''
+    Take in df and list of columns
+    add encoded columns derived from columns in list to the df
+    '''
+    for col in cols:
+        # get dummy columns
+        dummies = pd.get_dummies(df[col], drop_first=drop_first) 
+        # add dummy columns to df
+        df = pd.concat([df, dummies], axis=1) 
+        
+    return df
 
 def scaled_df ( train_df , validate_df, test_df, scaler):
     '''
@@ -160,3 +172,62 @@ def scaled_df ( train_df , validate_df, test_df, scaler):
 
     return train_scaled_df, validate_scaled_df, test_scaled_df
 
+def handle_missing_values(df, prop_required_columns=0.5, prop_required_row=0.75):
+    '''
+    takes in a df , proportion of columns and rows that we want to keep
+    '''
+    threshold = int(round(prop_required_columns * len(df.index),0))
+    df = df.dropna(axis=1, thresh=threshold)
+    threshold = int(round(prop_required_row * len(df.columns),0))
+    df = df.dropna(axis=0, thresh=threshold)
+
+     
+    return df
+
+
+def fill_nan(train, validate, test, cols,  strategy = 'most_frequent'):
+    
+    from sklearn.impute import SimpleImputer
+    imputer = SimpleImputer(missing_values = np.nan, strategy= strategy)
+    imputer = imputer.fit(train[cols])
+    
+    train[cols] = imputer.transform(train[cols])
+    validate[cols] = imputer.transform(validate[cols])
+    test[cols] = imputer.transform(test[cols])
+    
+    return train, validate, test
+
+
+def drop_low_missing_values(df, per = 1 ):
+    '''
+    takes in a df and the percentage that you want to drop of rows. the defautl value is 1%
+     remove the rows that has columuns with missing values less than 1%**
+    '''
+    
+    #drop rows with null values < per %
+    lis =((100 * df.isnull().sum() / len(df))> 0) &  ((100 * df.isnull().sum() / len(df))< per)
+    col_drop = list(lis[lis == True].index)
+    df = df.dropna(axis=0, subset = col_drop)
+    
+    return df
+
+
+def remove_outliers(df, col_list, k=1.5):
+    ''' remove outliers from the numeric columns in a dataframe 
+        and return that dataframe
+    '''
+    
+    for col in col_list:
+
+        q1, q3 = df[f'{col}'].quantile([.25, .75])  # get quartiles
+        
+        iqr = q3 - q1   # calculate interquartile range
+        
+        upper_bound = q3 + k * iqr   # get upper bound
+        lower_bound = q1 - k * iqr   # get lower bound
+
+        # return dataframe without outliers
+        
+        df = df[(df[f'{col}'] > lower_bound) & (df[f'{col}'] < upper_bound)]
+        
+    return df
