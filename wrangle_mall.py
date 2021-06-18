@@ -17,6 +17,7 @@ def get_mallcustomer_data():
 
 
 
+
 def wrangle_mall(scaler = MinMaxScaler()):
     '''
     takes in a type of scaler (MinMaxScaler, RobustScaler, StandardScaler)  acquires data from mall_customers.customers in mysql database,
@@ -27,22 +28,24 @@ def wrangle_mall(scaler = MinMaxScaler()):
     #acquire data
     df= get_mallcustomer_data()
     print('df shape', df.shape)
+
+    #remove outliers
+    col_list = ['age', 'annual_income', 'spending_score']
+    df = p.remove_outliers(df, col_list, k=1.5)
+    print('df shape after removing outliers', df.shape)
     
     #split data (use my function that is prepare.py)
     train, validate, test =p.split_data(df)
     
     #encode data
     #train
-    dummy_train = pd.get_dummies(train[['gender']], dummy_na=False, drop_first=[True])
-    train= pd.concat([train, dummy_train], axis=1)
+    train = p.encoding(train, ['gender'])
     #validate
-    dummy_val = pd.get_dummies(validate[['gender']], dummy_na=False, drop_first=[True])
-    validate= pd.concat([validate, dummy_val], axis=1)
+    validate = p.encoding(validate, ['gender'])
     #test
-    dummy_test = pd.get_dummies(test[['gender']], dummy_na=False, drop_first=[True])
-    test= pd.concat([test, dummy_test], axis=1)
+    test = p.encoding(test, ['gender'])
     
     #scaling (use my function that is prepare.py)
-    train , validate , test = p.scaled_df( train , validate , test,  scaler)
+    train_scaled , validate_scaled , test_scaled = p.scaled_df( train , validate , test,  MinMaxScaler())
     
-    return train , validate , test
+    return train , validate , test, train_scaled , validate_scaled , test_scaled
