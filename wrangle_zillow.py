@@ -34,6 +34,10 @@ AND latitude != 'NULL' AND longitude != 'NULL';
 
 def wrangle_zillow (  prop_required_columns=0.5, prop_required_row=0.75, strategy = 'most_frequent'):
     '''
+    Acquire zillow db from sql, single unit properties with transactions 2017,
+    remove outliers, missing values,  split into train validate and test.
+    impute heatingorsystemtypeid with most_frequent value
+    return tran, validate test
 
     '''
     
